@@ -61,16 +61,23 @@ class HueOperations:
                 "hue": 45000,
                 "sat": 250,
                 "bri": int(os.getenv("BRIGHTNESS_LEVEL"))},
+            "PURPLE": {
+                "hue": 50000,
+                "sat": 250,
+                "bri": int(os.getenv("BRIGHTNESS_LEVEL"))
+            }
 
         }
 
     def get_color(self, glucose_level: str):
         if glucose_level.upper().strip() == "HIGH":
-            color = self.colors[os.getenv("HIGH_COLOR")]
+            color = self.colors[str(os.getenv("HIGH_COLOR")).upper()]
         elif glucose_level.upper().strip() == "RANGE":
-            color = self.colors[os.getenv("RANGE_COLOR")]
+            color = self.colors[str(os.getenv("RANGE_COLOR")).upper()]
+        elif glucose_level.upper().strip() == "DELAY":
+            color = self.colors[str(os.getenv("NIGHSCOUT_DELAY_COLOR")).upper()]
         else:
-            color = self.colors[os.getenv("LOW_COLOR")]
+            color = self.colors[str(os.getenv("LOW_COLOR")).upper()]
         return color
 
     def change_1_light(self, color: dict, lightId: int):
@@ -78,25 +85,30 @@ class HueOperations:
         color = json.dumps(color)
         x = requests.put(f"{self.hue_api_link}lights/{lightId}/state", data=color)
         return
+    def turn_off_light(self, lightId: int):
+        body = json.dumps({"on": False})
+        requests.put(f"{self.hue_api_link}lights/{lightId}/state", data=body)
 
 
 if __name__ == '__main__':
     while True:
         current_time = parser.parse(str(TimeManagement().timezone_converter()[0]))
         try:
-            _end_min_and_secs = [int(x) for x in os.getenv("END_TIME").split(":")]
+            _start_mins_and_secs = [int(x) for x in os.getenv("START_TIME").split(":")]
         except ValueError:
             raise ValueError
         else:
             try:
-                _start_mins_and_secs = [int(x) for x in os.getenv("START_TIME").split(":")]
+                _end_mins_and_secs = [int(x) for x in os.getenv("END_TIME").split(":")]
             except ValueError:
                 raise ValueError
             else:
-                if (datetime.time(hour=int(_start_mins_and_secs[0]), minute=int(_start_mins_and_secs[1]))) > (
-                datetime.time(hour=current_time.hour, minute=current_time.minute)) < (
-                datetime.time(hour=int(_end_min_and_secs[0]), minute=int(_end_min_and_secs[1]))):
-                    print("WITHIN PROHIBITED TIME")
+                if (datetime.time(hour=int(_end_mins_and_secs[0]), minute=int(_end_mins_and_secs[1]))) < (
+                datetime.time(hour=current_time.hour, minute=current_time.minute)) > (
+                datetime.time(hour=int(_start_mins_and_secs[0]), minute=int(_start_mins_and_secs[1]))):
+                    for i in os.getenv("LIGHT_ID").split(","):
+                        HueOperations().turn_off_light(int(i))
+                    print("End time has passed, Turning lights off. Lights wont be turned off if they are already off")
                     time.sleep(durations.Duration(os.getenv("REFRESH_RATE")).to_seconds())
                 else:
                     now_time = parser.parse(str(TimeManagement().timezone_converter()[0]))
@@ -104,7 +116,9 @@ if __name__ == '__main__':
                     difference = now_time - nightscout_time
                     if ((datetime.datetime.min + difference).time()) > datetime.time(
                             minute=int(os.getenv("NIGHTSCOUT_REALTIME_DIFFERENCE"))):
-                        print("Difference in time bigger to the one defined in env, restart")
+                        print("Nightscout DELAY: Changing to {}".format(str(os.getenv("NIGHSCOUT_DELAY_COLOR").title())))
+                        for i in os.getenv("LIGHT_ID").split(","):
+                            HueOperations().change_1_light(HueOperations().get_color("DELAY"), int(i))
                         time.sleep(durations.Duration(os.getenv("REFRESH_RATE")).to_seconds())
                     else:
                         if TimeManagement().nightscout_json[0]["sgv"] in range(int(os.getenv("LOW_GLUCOSE_VALUE")), int(
@@ -127,4 +141,3 @@ if __name__ == '__main__':
                                                                    lightId=int(i))
                                     print("LOW Glucose {1}, changing color to {0}".format(os.getenv("LOW_COLOR"), TimeManagement().nightscout_json[0]["sgv"]))
                                 time.sleep(durations.Duration(os.getenv("REFRESH_RATE")).to_seconds())
-
