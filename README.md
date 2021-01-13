@@ -2,7 +2,7 @@
 
 These are the Envoriment Variables that the software uses.
 
-NIGHTSCOUT_URL=https://erandt1.herokuapp.com/
+NIGHTSCOUT_URL=https://erandt1.herokuapp.com/ <br />
 PHILLIPS_IP=192.168.1.16
 PHILLIPS_USERNAME=xbvg57OzanFFA4P2ldHToYIKG401gT8twU
 BRIGHTNESS_LEVEL=100
