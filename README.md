@@ -2,6 +2,9 @@
 
 These are the Envoriment Variables that the software uses.
 
+How to set-up? <br />
+Setting this up is very easy.
+
 NIGHTSCOUT_URL=https://your_nightscout_link.herokuapp.com/ <br />
 PHILLIPS_IP=192.168.1.16
 <br />PHILLIPS_USERNAME=your username <br />
