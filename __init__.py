@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# commets
 
 class TimeManagement:
 
@@ -92,6 +91,10 @@ class HueOperations:
 
 
 if __name__ == '__main__':
+    if os.getenv("REFRESH_RATE").startswith("'") or os.getenv("REFRESH_RATE").startswith("\""):
+        refresh = os.getenv("REFRESH_RATE")[1:len(os.getenv("REFRESH_RATE"))-1]
+    else:
+        refresh = os.getenv("REFRESH_RATE")
     while True:
         current_time = parser.parse(str(TimeManagement().timezone_converter()[0]))
         try:
@@ -110,7 +113,7 @@ if __name__ == '__main__':
                     for i in os.getenv("LIGHT_ID").split(","):
                         HueOperations().turn_off_light(int(i))
                     print("End time has passed, Turning lights off. Lights wont be turned off if they are already off")
-                    time.sleep(durations.Duration(os.getenv("REFRESH_RATE")).to_seconds())
+                    time.sleep(durations.Duration(refresh).to_seconds())
                 else:
                     now_time = parser.parse(str(TimeManagement().timezone_converter()[0]))
                     nightscout_time = parser.parse(str(TimeManagement().timezone_converter()[1]))
@@ -120,7 +123,7 @@ if __name__ == '__main__':
                         print("Nightscout DELAY: Changing to {}".format(str(os.getenv("NIGHSCOUT_DELAY_COLOR").title())))
                         for i in os.getenv("LIGHT_ID").split(","):
                             HueOperations().change_1_light(HueOperations().get_color("DELAY"), int(i))
-                        time.sleep(durations.Duration(os.getenv("REFRESH_RATE")).to_seconds())
+                        time.sleep(durations.Duration(refresh).to_seconds())
                     else:
                         if TimeManagement().nightscout_json[0]["sgv"] in range(int(os.getenv("LOW_GLUCOSE_VALUE")), int(
                                 os.getenv("HIGH_GLUCOSE_VALUE")) + 1):
@@ -128,17 +131,17 @@ if __name__ == '__main__':
                                 HueOperations().change_1_light(color=HueOperations().get_color("RANGE"),
                                                                lightId=int(i))
                                 print("Glucose IN-RANGE, changing color to {}".format(os.getenv("RANGE_COLOR")))
-                            time.sleep(durations.Duration(os.getenv("REFRESH_RATE")).to_seconds())
+                            time.sleep(durations.Duration(refresh).to_seconds())
                         else:
                             if TimeManagement().nightscout_json[0]["sgv"] > int(os.getenv("HIGH_GLUCOSE_VALUE")):
                                 for i in (os.getenv("LIGHT_ID").split(",")):
                                     HueOperations().change_1_light(color=HueOperations().get_color("HIGH"),
                                                                    lightId=int(i))
                                     print("HIGH Glucose {1}, changing color to {0}".format(os.getenv("HIGH_COLOR"), TimeManagement().nightscout_json[0]["sgv"]))
-                                time.sleep(durations.Duration(os.getenv("REFRESH_RATE")).to_seconds())
+                                time.sleep(durations.Duration(refresh).to_seconds())
                             else:
                                 for i in (os.getenv("LIGHT_ID").split(",")):
                                     HueOperations().change_1_light(color=HueOperations().get_color("LOW"),
                                                                    lightId=int(i))
                                     print("LOW Glucose {1}, changing color to {0}".format(os.getenv("LOW_COLOR"), TimeManagement().nightscout_json[0]["sgv"]))
-                                time.sleep(durations.Duration(os.getenv("REFRESH_RATE")).to_seconds())
+                                time.sleep(durations.Duration(refresh).to_seconds())
