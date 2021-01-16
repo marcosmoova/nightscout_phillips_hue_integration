@@ -91,11 +91,12 @@ class HueOperations:
 
 
 if __name__ == '__main__':
-    if os.getenv("REFRESH_RATE").startswith("'") or os.getenv("REFRESH_RATE").startswith("\""):
-        refresh = os.getenv("REFRESH_RATE")[1:len(os.getenv("REFRESH_RATE"))-1]
-    else:
-        refresh = os.getenv("REFRESH_RATE")
     while True:
+        if os.getenv("REFRESH_RATE").startswith("'") or os.getenv("REFRESH_RATE").startswith("\""):
+            refresh = os.getenv("REFRESH_RATE")[1:len(os.getenv("REFRESH_RATE")) - 1]
+        else:
+            refresh = os.getenv("REFRESH_RATE")
+
         current_time = parser.parse(str(TimeManagement().timezone_converter()[0]))
         try:
             _start_mins_and_secs = [int(x) for x in os.getenv("START_TIME").split(":")]
